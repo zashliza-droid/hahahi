@@ -77,24 +77,19 @@ def upload():
 
     df = pd.read_excel(path, header=header_row)
 
-# Bersihkan kolom kosong total
-df = df.replace(r'^\s*$', pd.NA, regex=True)
-df = df.dropna(axis=1, how="all")
+    # Bersihkan kolom
+    df = df.replace(r'^\s*$', pd.NA, regex=True)
+    df = df.dropna(axis=1, how="all")
+    df = df.loc[:, df.notna().sum() > 1]
+    df = df.reset_index(drop=True)
 
-# Hapus kolom yang isinya cuma 1 data (tidak berguna)
-df = df.loc[:, df.notna().sum() > 1]
-
-# Reset index biar rapi
-df = df.reset_index(drop=True)
-
+    # ⬇⬇⬇ INI HARUS TANPA INDENT TAMBAHAN
     df_global = df
 
     kolom_kode = next(
-        (
-            col for col in df.columns
-            if "kode kegiatan" in str(col).lower()
-            or "kode keg" in str(col).lower()
-        ),
+        (c for c in df.columns
+         if "kode kegiatan" in str(c).lower()
+         or "kode keg" in str(c).lower()),
         None
     )
 
@@ -112,8 +107,9 @@ df = df.reset_index(drop=True)
     return render_template(
         "index.html",
         projects=kode_list,
-        message=None if kode_list else "Tidak ada proyek ditemukan"
+        message=None
     )
+
 
 # ===============================
 # EXPORT WORD
