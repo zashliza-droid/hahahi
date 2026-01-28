@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload Data</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+    <h1>📊 Sistem Data Kegiatan</h1>
+
+    <div class="alert">{{ message }}</div>
+
+    <form action="/upload" method="post" enctype="multipart/form-data" class="upload-box">
+        <input type="file" name="file" accept=".xlsx" required>
+        <br><br>
+        <button>Upload</button>
+    </form>
+
+    <h2>📌 Daftar Kode</h2>
+
+    {% if projects %}
+    <input type="text" id="search" placeholder="Cari kode..." onkeyup="filter()">
+    {% endif %}
+
+    <div id="list">
+        {% for kode in projects %}
+            <a href="/detail/{{ kode }}" class="kode">{{ kode }}</a>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function filter(){
+    let v = document.getElementById("search").value.toUpperCase();
+    let a = document.querySelectorAll(".kode");
+    a.forEach(e=>{
+        e.style.display = e.innerText.toUpperCase().includes(v) ? "" : "none";
+    });
+}
+</script>
+
+</body>
+</html>

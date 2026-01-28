@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Register</title>
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #2a5298, #1e3c72);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card {
+    background: white;
+    padding: 40px;
+    width: 350px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+h2 {
+    text-align: center;
+    color: #1e3c72;
+}
+
+input, button {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    margin-top: 10px;
+    border-radius: 6px;
+}
+
+button {
+    background: #1e3c72;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #16325c;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Register</h2>
+    <form method="post">
+        Username
+        <input name="username" required>
+
+        Password
+        <input type="password" name="password" required>
+
+        <button>Daftar</button>
+    </form>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Detail {{ kode }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+    <h1>📄 Detail Kode {{ kode }}</h1>
+
+    <div class="actions">
+        <a href="/download/{{ excel }}">Excel</a>
+        <a href="/download/{{ word }}">Word</a>
+        <a href="/download/{{ pdf }}">PDF</a>
+        <a href="/">Kembali</a>
+    </div>
+
+    <div class="table-container">
+        {{ table | safe }}
+    </div>
+</div>
+
+</body>
+</html>
