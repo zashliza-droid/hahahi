@@ -39,6 +39,11 @@ def format_nominal(val):
     except:
         return str(val)
 
+def format_datetime(val):
+    if isinstance(val, pd.Timestamp):
+        return val.strftime("%d-%m-%Y")
+    return val
+
 # ===============================
 # INDEX
 # ===============================
@@ -49,6 +54,7 @@ def index():
         projects=[],
         message="Silakan upload file Excel"
     )
+    
 
 # ===============================
 # UPLOAD EXCEL
@@ -82,6 +88,10 @@ def upload():
     df = df.dropna(axis=1, how="all")
     df = df.loc[:, ~df.columns.str.contains("^Unnamed", na=False)]
     df = df.reset_index(drop=True)
+    for col in df.columns:
+     if pd.api.types.is_datetime64_any_dtype(df[col]):
+        df[col] = df[col].apply(format_datetime)
+
 
     df_global = df
 
