@@ -21,7 +21,17 @@
     <h2>📌 Daftar Kode</h2>
 
     {% if projects %}
-    <input type="text" id="search" placeholder="Cari kode..." onkeyup="filter()">
+   <div class="search-wrapper">
+    <span class="search-icon"></span>
+    <input 
+        type="text"
+        id="search"
+        placeholder="Cari kode kegiatan..."
+        onkeyup="filter()"
+        autofocus
+    >
+</div>
+
     {% endif %}
 
     <div id="list">
