@@ -46,20 +46,6 @@ def detail(kode):
         pdf=f"{kode}.pdf"
     )
 
-
-# =========================
-# PREVIEW CEPAT (HTML)
-# =========================
-@app.route("/preview-html/<kode>")
-def preview_html(kode):
-    data = df_global[df_global[kolom_kode].astype(str) == kode]
-    return render_template(
-        "preview_html.html",
-        data=data.to_dict(orient="records"),
-        columns=data.columns
-    )
-
-
 # =========================
 # AUTO OPEN EXCEL
 # =========================
@@ -104,4 +90,5 @@ def preview_html(kode):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
