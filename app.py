@@ -90,6 +90,18 @@ def files(filename):
 def download(filename):
     return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
 
+@app.route("/preview-html/<kode>")
+def preview_html(kode):
+    data = df_global[df_global[kolom_kode].astype(str) == kode]
+
+    return render_template(
+        "preview_html.html",
+        data=data.to_dict(orient="records"),
+        columns=data.columns,
+        kode=kode
+    )
+
 
 if __name__ == "__main__":
     app.run(debug=True)
+
