@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory
+from flask import Flask, render_template, request, redirect, send_from_directory
 import pandas as pd
 import os
 
@@ -11,14 +11,22 @@ df_global = None
 kolom_kode = None
 
 
+# =========================
+# HALAMAN UTAMA
+# =========================
 @app.route("/")
 def index():
     projects = []
-    if df_global is not None:
+
+    if df_global is not None and kolom_kode is not None:
         projects = df_global[kolom_kode].astype(str).unique().tolist()
-    return render_template("index.html", projects=projects, message="")
+
+    return render_template("index.html", projects=projects)
 
 
+# =========================
+# UPLOAD EXCEL
+# =========================
 @app.route("/upload", methods=["POST"])
 def upload():
     global df_global, kolom_kode
@@ -28,11 +36,14 @@ def upload():
     file.save(path)
 
     df_global = pd.read_excel(path)
-    kolom_kode = df_global.columns[0]
+    kolom_kode = df_global.columns[0]  # kolom pertama = kode kegiatan
 
     return redirect("/")
 
 
+# =========================
+# DETAIL KODE
+# =========================
 @app.route("/detail/<kode>")
 def detail(kode):
     data = df_global[df_global[kolom_kode].astype(str) == kode]
@@ -42,9 +53,25 @@ def detail(kode):
         kode=kode,
         table=data.to_html(index=False),
         excel=f"{kode}.xlsx",
-        word=f"{kode}.docx",
-        pdf=f"{kode}.pdf"
+        pdf=f"{kode}.pdf",
+        word=f"{kode}.docx"
     )
+
+
+# =========================
+# PREVIEW CEPAT (HTML)
+# =========================
+@app.route("/preview-html/<kode>")
+def preview_html(kode):
+    data = df_global[df_global[kolom_kode].astype(str) == kode]
+
+    return render_template(
+        "preview_html.html",
+        kode=kode,
+        data=data.to_dict(orient="records"),
+        columns=data.columns
+    )
+
 
 # =========================
 # AUTO OPEN EXCEL
@@ -67,6 +94,9 @@ def open_excel(kode):
         )
 
 
+# =========================
+# FILE ACCESS
+# =========================
 @app.route("/files/<filename>")
 def files(filename):
     return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=False)
@@ -76,19 +106,6 @@ def files(filename):
 def download(filename):
     return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
 
-@app.route("/preview-html/<kode>")
-def preview_html(kode):
-    data = df_global[df_global[kolom_kode].astype(str) == kode]
-
-    return render_template(
-        "preview_html.html",
-        data=data.to_dict(orient="records"),
-        columns=data.columns,
-        kode=kode
-    )
-
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-
