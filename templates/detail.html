@@ -12,31 +12,24 @@
 
   <div class="actions">
 
-    <!-- PREVIEW CEPAT (BARU, INSTANT) -->
+    <!-- AUTO DETECT -->
+    <a href="/open-excel/{{ kode }}" target="_blank">
+        🟢 Buka Excel
+    </a>
+
+    <!-- PREVIEW CEPAT -->
     <a href="/preview-html/{{ kode }}" target="_blank">
         ⚡ Preview Cepat
     </a>
 
-    <!-- PREVIEW EXCEL (LAMA, GOOGLE) -->
-    <a href="/preview-excel/{{ kode }}" target="_blank">
-        🌐 Preview Excel (Online)
-    </a>
-
-    <!-- EXCEL APP -->
-    <a href="intent://{{ request.host }}/files/{{ excel }}#Intent;
-        scheme=https;
-        package=com.microsoft.office.excel;
-        end;">
-        📱 Buka di Excel App
-    </a>
-
     <!-- DOWNLOAD -->
-    <a href="/download/{{ excel }}">⬇️ Download Excel</a>
-    <a href="/download/{{ word }}">⬇️ Download Word</a>
-    <a href="/download/{{ pdf }}">⬇️ Download PDF</a>
+    <a href="/download/{{ excel }}">⬇️ Excel</a>
+    <a href="/download/{{ word }}">⬇️ Word</a>
+    <a href="/download/{{ pdf }}">⬇️ PDF</a>
 
     <a href="/">⬅️ Kembali</a>
 </div>
+
 
     <!-- ========================= -->
     <!-- TABEL DATA -->
@@ -48,4 +41,5 @@
 
 </body>
 </html>
+
 
