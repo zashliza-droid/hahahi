@@ -288,15 +288,6 @@ def detail(kode):
     )
 
 # ===============================
-# PREVIEW EXCEL (ONLINE)
-# ===============================
-@app.route("/preview-excel/<kode>")
-def preview_excel(kode):
-    excel_url = request.host_url + "files/" + kode + ".xlsx"
-    google_viewer = f"https://docs.google.com/gview?url={excel_url}&embedded=true"
-    return render_template("preview_excel.html", excel_url=google_viewer, kode=kode)
-
-# ===============================
 # FILE PUBLIC
 # ===============================
 @app.route("/preview-excel/<kode>")
@@ -358,4 +349,5 @@ def download(filename):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
+
 
