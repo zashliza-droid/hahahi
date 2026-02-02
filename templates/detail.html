@@ -1,39 +1,22 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <title>Detail {{ kode }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<meta charset="UTF-8">
+<title>Detail {{ kode }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
 <div class="container">
     <h1>📄 Detail Kode {{ kode }}</h1>
 
-  <div class="actions">
+    <div class="actions">
+        <a href="/open-excel/{{ kode }}" target="_blank">🟢 Buka Excel</a>
+        <a href="/preview-html/{{ kode }}" target="_blank">⚡ Preview Cepat</a>
+        <a href="/download/{{ excel }}">⬇️ Excel</a>
+        <a href="/">⬅️ Kembali</a>
+    </div>
 
-    <!-- AUTO DETECT -->
-    <a href="/open-excel/{{ kode }}" target="_blank">
-        🟢 Buka Excel
-    </a>
-
-    <!-- PREVIEW CEPAT -->
-    <a href="/preview-html/{{ kode }}" target="_blank">
-        ⚡ Preview Cepat
-    </a>
-
-    <!-- DOWNLOAD -->
-    <a href="/download/{{ excel }}">⬇️ Excel</a>
-    <a href="/download/{{ word }}">⬇️ Word</a>
-    <a href="/download/{{ pdf }}">⬇️ PDF</a>
-
-    <a href="/">⬅️ Kembali</a>
-</div>
-
-
-    <!-- ========================= -->
-    <!-- TABEL DATA -->
-    <!-- ========================= -->
     <div class="table-container">
         {{ table | safe }}
     </div>
@@ -41,5 +24,3 @@
 
 </body>
 </html>
-
-
