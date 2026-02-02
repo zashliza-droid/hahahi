@@ -11,12 +11,37 @@
     <h1>📄 Detail Kode {{ kode }}</h1>
 
     <div class="actions">
-        <a href="/download/{{ excel }}">Excel</a>
-        <a href="/download/{{ word }}">Word</a>
-        <a href="/download/{{ pdf }}">PDF</a>
-        <a href="/">Kembali</a>
+
+        <!-- ========================= -->
+        <!-- PREVIEW EXCEL (WEB ONLINE) -->
+        <!-- ========================= -->
+        <a href="/preview-excel/{{ kode }}" target="_blank">
+            🌐 Preview Excel (Online)
+        </a>
+
+        <!-- ========================= -->
+        <!-- BUKA DI EXCEL / SHEETS APK -->
+        <!-- ========================= -->
+        <a href="intent://{{ request.host }}/files/{{ excel }}#Intent;
+            scheme=https;
+            package=com.microsoft.office.excel;
+            end;">
+            📱 Buka di Excel App
+        </a>
+
+        <!-- ========================= -->
+        <!-- DOWNLOAD FILE -->
+        <!-- ========================= -->
+        <a href="/download/{{ excel }}">⬇️ Download Excel</a>
+        <a href="/download/{{ word }}">⬇️ Download Word</a>
+        <a href="/download/{{ pdf }}">⬇️ Download PDF</a>
+
+        <a href="/">⬅️ Kembali</a>
     </div>
 
+    <!-- ========================= -->
+    <!-- TABEL DATA -->
+    <!-- ========================= -->
     <div class="table-container">
         {{ table | safe }}
     </div>
