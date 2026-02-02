@@ -60,3 +60,37 @@ td {
     margin-right: 15px;
     font-weight: bold;
 }
+
+/* ===============================
+   SEARCH BOX – LEBIH BESAR & RAPI
+   =============================== */
+.search-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin: 20px 0 30px 0;
+}
+
+.search-wrapper input {
+    width: 380px;
+    padding: 12px 14px 12px 42px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: 2px solid #0f4c75;
+}
+
+.search-wrapper input:focus {
+    outline: none;
+    border-color: #3282b8;
+    box-shadow: 0 0 6px rgba(50,130,184,0.6);
+}
+
+.search-icon {
+    position: absolute;
+    left: calc(50% - 175px);
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #0f4c75;
+    pointer-events: none;
+}
