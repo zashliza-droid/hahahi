@@ -7,7 +7,9 @@ from reportlab.lib.pagesizes import A4, landscape
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
+
 from openpyxl.utils import get_column_letter
+from openpyxl.styles import numbers
 
 app = Flask(__name__)
 
@@ -28,14 +30,15 @@ df_global = None
 kolom_kode = None
 
 # ===============================
-# FORMAT NOMINAL (1.000.000)
+# FORMAT
 # ===============================
 def format_nominal(val):
     try:
         if pd.isna(val):
             return ""
-        num = float(val)
-        return f"{int(num):,}".replace(",", ".")
+        if isinstance(val, (int, float)):
+            return f"{int(val):,}".replace(",", ".")
+        return str(val)
     except:
         return str(val)
 
@@ -54,10 +57,9 @@ def index():
         projects=[],
         message="Silakan upload file Excel"
     )
-    
 
 # ===============================
-# UPLOAD EXCEL
+# UPLOAD
 # ===============================
 @app.route("/upload", methods=["POST"])
 def upload():
@@ -70,9 +72,9 @@ def upload():
     path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(path)
 
-    # Cari header otomatis
     df_raw = pd.read_excel(path, header=None)
     header_row = None
+
     for i, row in df_raw.iterrows():
         if row.notna().sum() >= 2:
             header_row = i
@@ -82,20 +84,17 @@ def upload():
         return "Header tidak ditemukan"
 
     df = pd.read_excel(path, header=header_row)
-
-    # Bersihkan kolom
     df = df.replace(r'^\s*$', pd.NA, regex=True)
     df = df.dropna(axis=1, how="all")
     df = df.loc[:, ~df.columns.str.contains("^Unnamed", na=False)]
     df = df.reset_index(drop=True)
-    for col in df.columns:
-     if pd.api.types.is_datetime64_any_dtype(df[col]):
-        df[col] = df[col].apply(format_datetime)
 
+    for col in df.columns:
+        if pd.api.types.is_datetime64_any_dtype(df[col]):
+            df[col] = df[col].apply(format_datetime)
 
     df_global = df
 
-    # Cari kolom kode kegiatan
     kolom_kode = next(
         (c for c in df.columns
          if "kode kegiatan" in str(c).lower()
@@ -121,7 +120,7 @@ def upload():
     )
 
 # ===============================
-# EXPORT WORD
+# WORD
 # ===============================
 def buat_word(data, kode):
     path = os.path.join(OUTPUT_FOLDER, f"{kode}.docx")
@@ -143,34 +142,79 @@ def buat_word(data, kode):
     return path
 
 # ===============================
-# EXPORT PDF (RAPI)
+# PDF (AUTO FIT)
 # ===============================
-def buat_pdf(data, kode):
+def buat_pdf(data, kode, kolom_fleksibel=None):
     path = os.path.join(OUTPUT_FOLDER, f"{kode}.pdf")
 
-    pdf = SimpleDocTemplate(
+    if kolom_fleksibel is None:
+        kolom_fleksibel = []
+
+    doc = SimpleDocTemplate(
         path,
         pagesize=landscape(A4),
-        leftMargin=20,
-        rightMargin=20,
-        topMargin=20,
-        bottomMargin=20
+        leftMargin=15,
+        rightMargin=15,
+        topMargin=15,
+        bottomMargin=15
     )
 
     styles = getSampleStyleSheet()
     style = styles["Normal"]
-    style.fontSize = 8
+    style.fontSize = 7
     style.leading = 9
 
-    # Hitung lebar kolom otomatis
-    col_widths = []
-    for col in data.columns:
-        max_len = max(
-            data[col].fillna("").astype(str).map(len).max(),
-            len(str(col))
-        )
-        col_widths.append(min(max_len * 6, 120))
+    # ===============================
+    # LEBAR HALAMAN YANG REAL
+    # ===============================
+    page_width, _ = landscape(A4)
+    usable_width = page_width - doc.leftMargin - doc.rightMargin
 
+    col_widths = []
+    fixed_total = 0
+
+    # ===============================
+    # HITUNG KOLOM
+    # ===============================
+    for col in data.columns:
+        if col in kolom_fleksibel:
+            col_widths.append(None)
+        else:
+            max_len = max(
+                data[col].astype(str).map(len).max(),
+                len(str(col))
+            )
+            w = min(max(max_len * 5, 45), 85)
+            col_widths.append(w)
+            fixed_total += w
+
+    fleksibel_count = col_widths.count(None)
+
+    # ===============================
+    # SISA LEBAR
+    # ===============================
+    sisa = usable_width - fixed_total
+
+    if fleksibel_count > 0:
+        per_fleksibel = sisa / fleksibel_count
+    else:
+        per_fleksibel = sisa
+
+    col_widths = [
+        per_fleksibel if w is None else w
+        for w in col_widths
+    ]
+
+    # ===============================
+    # 🔴 PAKSA TOTAL WIDTH = PAGE WIDTH
+    # ===============================
+    total_col_width = sum(col_widths)
+    scale = usable_width / total_col_width
+    col_widths = [w * scale for w in col_widths]
+
+    # ===============================
+    # DATA TABLE
+    # ===============================
     table_data = [[Paragraph(str(c), style) for c in data.columns]]
 
     for _, row in data.iterrows():
@@ -178,16 +222,26 @@ def buat_pdf(data, kode):
             [Paragraph(format_nominal(v), style) for v in row]
         )
 
-    table = Table(table_data, colWidths=col_widths, repeatRows=1)
+    table = Table(
+        table_data,
+        colWidths=col_widths,
+        repeatRows=1,
+        hAlign="LEFT"   # 🔥 INI KUNCI
+    )
+
     table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.black),
         ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
         ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('ALIGN', (0,0), (-1,0), 'CENTER'),
     ]))
 
-    title = Paragraph(f"Data Kode Kegiatan: {kode}", styles["Heading2"])
-    pdf.build([title, table])
+    title = Paragraph(
+        f"<b>Data Kode Kegiatan: {kode}</b>",
+        styles["Heading3"]
+    )
 
+    doc.build([title, table])
     return path
 
 # ===============================
@@ -201,26 +255,25 @@ def detail(kode):
         return "Data belum diupload"
 
     data = df_global[df_global[kolom_kode].astype(str) == kode]
-
-    # Bersihkan lagi (AMAN)
-    data = data.loc[:, ~data.columns.str.contains("^Unnamed", na=False)]
-    data = data.dropna(axis=1, how="all")
-
     if data.empty:
         return "Data tidak ditemukan"
 
-    # Excel
+    # ===== EXCEL =====
     excel_path = os.path.join(OUTPUT_FOLDER, f"{kode}.xlsx")
     with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
         data.to_excel(writer, index=False)
         ws = writer.sheets["Sheet1"]
 
-        for i, col in enumerate(data.columns, 1):
-            max_len = max(
-                data[col].fillna("").astype(str).map(len).max(),
-                len(str(col))
-            )
-            ws.column_dimensions[get_column_letter(i)].width = max_len + 4
+        for col_idx, col in enumerate(data.columns, 1):
+            max_len = len(str(col))
+
+            for row_idx, val in enumerate(data[col], 2):
+                cell = ws.cell(row=row_idx, column=col_idx)
+                if isinstance(val, (int, float)):
+                    cell.number_format = '#,##0'
+                max_len = max(max_len, len(str(val)))
+
+            ws.column_dimensions[get_column_letter(col_idx)].width = max_len + 4
 
     word_path = buat_word(data, kode)
     pdf_path = buat_pdf(data, kode)
@@ -235,6 +288,25 @@ def detail(kode):
     )
 
 # ===============================
+# PREVIEW EXCEL (ONLINE)
+# ===============================
+@app.route("/preview-excel/<kode>")
+def preview_excel(kode):
+    excel_url = request.host_url + "files/" + kode + ".xlsx"
+    google_viewer = f"https://docs.google.com/gview?url={excel_url}&embedded=true"
+    return render_template("preview_excel.html", excel_url=google_viewer, kode=kode)
+
+# ===============================
+# FILE PUBLIC
+# ===============================
+@app.route("/files/<filename>")
+def files(filename):
+    path = os.path.join(OUTPUT_FOLDER, filename)
+    if os.path.exists(path):
+        return send_file(path)
+    return "File tidak ditemukan"
+
+# ===============================
 # DOWNLOAD
 # ===============================
 @app.route("/download/<filename>")
@@ -245,7 +317,7 @@ def download(filename):
     return "File tidak ditemukan"
 
 # ===============================
-# RUN (RAILWAY)
+# RUN
 # ===============================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
