@@ -1,55 +1,28 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <title>Upload Data</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<meta charset="UTF-8">
+<title>Sistem Data Kegiatan</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
 <div class="container">
     <h1>📊 Sistem Data Kegiatan</h1>
 
-    <div class="alert">{{ message }}</div>
-
-    <form action="/upload" method="post" enctype="multipart/form-data" class="upload-box">
-        <input type="file" name="file" accept=".xlsx" required>
-        <br><br>
-        <button>Upload</button>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" required>
+        <button type="submit">Upload</button>
     </form>
 
-    <h2>📌 Daftar Kode</h2>
+    <h2>📌 Daftar Kode Kegiatan</h2>
 
-    {% if projects %}
-   <div class="search-wrapper">
-    <span class="search-icon"></span>
-    <input 
-        type="text"
-        id="search"
-        placeholder="Cari kode kegiatan..."
-        onkeyup="filter()"
-        autofocus
-    >
-</div>
-
-    {% endif %}
-
-    <div id="list">
+    <div class="kode-list">
         {% for kode in projects %}
-            <a href="/detail/{{ kode }}" class="kode">{{ kode }}</a>
+            <a href="/detail/{{ kode }}" class="kode-item">{{ kode }}</a>
         {% endfor %}
     </div>
 </div>
-
-<script>
-function filter(){
-    let v = document.getElementById("search").value.toUpperCase();
-    let a = document.querySelectorAll(".kode");
-    a.forEach(e=>{
-        e.style.display = e.innerText.toUpperCase().includes(v) ? "" : "none";
-    });
-}
-</script>
 
 </body>
 </html>
