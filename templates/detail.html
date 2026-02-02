@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<title>Detail {{ kode }}</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <title>Detail {{ kode }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
@@ -11,12 +11,37 @@
     <h1>📄 Detail Kode {{ kode }}</h1>
 
     <div class="actions">
-        <a href="/open-excel/{{ kode }}" target="_blank">🟢 Buka Excel</a>
-        <a href="/preview-html/{{ kode }}" target="_blank">⚡ Preview Cepat</a>
-        <a href="/download/{{ excel }}">⬇️ Excel</a>
+
+        <!-- ========================= -->
+        <!-- PREVIEW EXCEL (WEB ONLINE) -->
+        <!-- ========================= -->
+        <a href="/preview-excel/{{ kode }}" target="_blank">
+            🌐 Preview Excel (Online)
+        </a>
+
+        <!-- ========================= -->
+        <!-- BUKA DI EXCEL / SHEETS APK -->
+        <!-- ========================= -->
+        <a href="intent://{{ request.host }}/files/{{ excel }}#Intent;
+            scheme=https;
+            package=com.microsoft.office.excel;
+            end;">
+            📱 Buka di Excel App
+        </a>
+
+        <!-- ========================= -->
+        <!-- DOWNLOAD FILE -->
+        <!-- ========================= -->
+        <a href="/download/{{ excel }}">⬇️ Download Excel</a>
+        <a href="/download/{{ word }}">⬇️ Download Word</a>
+        <a href="/download/{{ pdf }}">⬇️ Download PDF</a>
+
         <a href="/">⬅️ Kembali</a>
     </div>
 
+    <!-- ========================= -->
+    <!-- TABEL DATA -->
+    <!-- ========================= -->
     <div class="table-container">
         {{ table | safe }}
     </div>
