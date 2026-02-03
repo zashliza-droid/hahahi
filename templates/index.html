@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Upload Data</title>
+    <title>Sistem Data Kegiatan</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -10,7 +10,9 @@
 <div class="container">
     <h1>📊 Sistem Data Kegiatan</h1>
 
+    {% if message %}
     <div class="alert">{{ message }}</div>
+    {% endif %}
 
     <form action="/upload" method="post" enctype="multipart/form-data" class="upload-box">
         <input type="file" name="file" accept=".xlsx" required>
@@ -18,36 +20,58 @@
         <button>Upload</button>
     </form>
 
-    <h2>📌 Daftar Kode</h2>
+    <h2>📌 Daftar Kode Kegiatan</h2>
 
     {% if projects %}
-   <div class="search-wrapper">
-    <span class="search-icon"></span>
-    <input 
-        type="text"
-        id="search"
-        placeholder="Cari kode kegiatan..."
-        onkeyup="filter()"
-        autofocus
-    >
-</div>
-
+    <div class="search-wrapper">
+        <input
+            type="text"
+            id="search"
+            placeholder="Cari kode kegiatan..."
+            onkeyup="filterKode()"
+            autofocus
+        >
+    </div>
     {% endif %}
 
     <div id="list">
         {% for kode in projects %}
-            <a href="/detail/{{ kode }}" class="kode">{{ kode }}</a>
+            <a href="#" class="kode" onclick="bukaExcel('{{ kode }}')">
+                {{ kode }}
+            </a>
         {% endfor %}
     </div>
 </div>
 
 <script>
-function filter(){
+function filterKode(){
     let v = document.getElementById("search").value.toUpperCase();
     let a = document.querySelectorAll(".kode");
     a.forEach(e=>{
         e.style.display = e.innerText.toUpperCase().includes(v) ? "" : "none";
     });
+}
+
+function bukaExcel(kode){
+    let isAndroid = /Android/i.test(navigator.userAgent);
+    let isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if(isAndroid){
+        // 📱 ANDROID → Excel APK
+        window.location.href =
+            "intent://" + window.location.host + "/files/" + kode + ".xlsx#Intent;" +
+            "scheme=https;" +
+            "package=com.microsoft.office.excel;" +
+            "end;";
+    }
+    else if(isIOS){
+        // 🍎 IOS → DOWNLOAD
+        window.location.href = "/files/" + kode + ".xlsx";
+    }
+    else{
+        // 💻 LAPTOP → PREVIEW WEB
+        window.location.href = "/preview-excel/" + kode;
+    }
 }
 </script>
 
