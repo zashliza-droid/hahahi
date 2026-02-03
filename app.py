@@ -302,37 +302,26 @@ def preview_excel(kode):
         return "Data tidak ditemukan"
 
     # ===============================
-    # DETEKSI LOCAL / DEPLOY
+    # PASTIKAN FILE EXCEL ADA
     # ===============================
-    is_local = request.host.startswith("127.0.0.1") or request.host.startswith("localhost")
-
     excel_path = os.path.join(OUTPUT_FOLDER, f"{kode}.xlsx")
 
-    # pastikan file excel ada
     if not os.path.exists(excel_path):
         with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
             data.to_excel(writer, index=False)
+            ws = writer.sheets["Sheet1"]
+
+            for col_idx, col in enumerate(data.columns, 1):
+                max_len = len(str(col))
+                for row_idx, val in enumerate(data[col], 2):
+                    cell = ws.cell(row=row_idx, column=col_idx)
+                    if isinstance(val, (int, float)):
+                        cell.number_format = '#,##0'
+                    max_len = max(max_len, len(str(val)))
+                ws.column_dimensions[get_column_letter(col_idx)].width = max_len + 4
 
     # ===============================
-    # LOCAL → HTML SPREADSHEET
-    # ===============================
-    if is_local:
-        table_html = data.apply(
-            lambda c: c.map(format_nominal)
-        ).to_html(
-            index=False,
-            classes="excel-table"
-        )
-
-        return render_template(
-            "preview_excel.html",
-            table=table_html,
-            kode=kode,
-            mode="html"
-        )
-
-    # ===============================
-    # DEPLOY → GOOGLE VIEWER
+    # GOOGLE VIEWER
     # ===============================
     excel_url = request.host_url.rstrip("/") + "/files/" + kode + ".xlsx"
     google_viewer = f"https://docs.google.com/gview?url={excel_url}&embedded=true"
@@ -340,9 +329,9 @@ def preview_excel(kode):
     return render_template(
         "preview_excel.html",
         excel_url=google_viewer,
-        kode=kode,
-        mode="google"
+        kode=kode
     )
+
 # ===============================
 # FILE PUBLIC
 # ===============================
