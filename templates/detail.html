@@ -12,39 +12,48 @@
 
     <div class="actions">
 
-        <!-- ========================= -->
-        <!-- BUKA DI EXCEL / SHEETS APK -->
-        <!-- ========================= -->
-        <a href="intent://{{ request.host }}/files/{{ excel }}#Intent;
+        <!-- ANDROID EXCEL APP -->
+        <a href="intent://{{ request.host }}/open-excel/{{ kode }}#Intent;
             scheme=https;
             package=com.microsoft.office.excel;
             end;">
             📱 Buka di Excel App
         </a>
 
+        <!-- BROWSER -->
         <a href="/open-excel/{{ kode }}" target="_blank">
             🖥️ Buka Excel (Browser)
         </a>
 
-
-        <!-- ========================= -->
-        <!-- DOWNLOAD FILE -->
-        <!-- ========================= -->
-        <a href="/download/{{ excel }}">⬇️ Download Excel</a>
-        <a href="/download/{{ word }}">⬇️ Download Word</a>
-        <a href="/download/{{ pdf }}">⬇️ Download PDF</a>
+        <!-- DOWNLOAD -->
+        <a href="/download/excel/{{ kode }}">⬇️ Download Excel</a>
+        <a href="/download/word/{{ kode }}">⬇️ Download Word</a>
+        <a href="/download/pdf/{{ kode }}">⬇️ Download PDF</a>
 
         <a href="/">⬅️ Kembali</a>
     </div>
 
-    <!-- ========================= -->
-    <!-- TABEL DATA -->
-    <!-- ========================= -->
     <div class="table-container">
-        {{ table | safe }}
+        <table>
+            <thead>
+                <tr>
+                    {% for k in kolom %}
+                        <th>{{ k }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in tabel %}
+                    <tr>
+                        {% for k in kolom %}
+                            <td>{{ row[k] }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 
 </body>
 </html>
-
