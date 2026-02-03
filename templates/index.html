@@ -43,28 +43,72 @@
     </div>
 </div>
 
-<script>
-function filterKode(){
-    let v = document.getElementById("search").value.toUpperCase();
-    let a = document.querySelectorAll(".kode");
-    a.forEach(e=>{
-        e.style.display = e.innerText.toUpperCase().includes(v) ? "" : "none";
-    });
-}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistem Data Kegiatan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
 
+<div class="container">
+    <h1>📊 Sistem Data Kegiatan</h1>
+
+    {% if message %}
+    <div class="alert">{{ message }}</div>
+    {% endif %}
+
+    <form action="/upload" method="post" enctype="multipart/form-data" class="upload-box">
+        <input type="file" name="file" accept=".xlsx" required>
+        <br><br>
+        <button>Upload</button>
+    </form>
+
+    <h2>📌 Daftar Kode Kegiatan</h2>
+
+    {% if projects %}
+    <div class="search-wrapper">
+        <input
+            type="text"
+            id="search"
+            placeholder="Cari kode kegiatan..."
+            onkeyup="filterKode()"
+            autofocus
+        >
+    </div>
+    {% endif %}
+
+    <div id="list">
+        {% for kode in projects %}
+            <a href="#" class="kode" onclick="bukaExcel('{{ kode }}')">
+                {{ kode }}
+            </a>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
 function bukaExcel(kode){
     let isAndroid = /Android/i.test(navigator.userAgent);
     let isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
     if(isAndroid){
-        // 📱 ANDROID → Excel APK
         window.location.href =
-            "intent://" + window.location.host + "/files/" + kode + ".xlsx#Intent;" +
+            "intent://" + window.location.host + "/open-excel/" + kode + "#Intent;" +
             "scheme=https;" +
             "package=com.microsoft.office.excel;" +
             "end;";
     }
     else if(isIOS){
+        window.location.href = "/open-excel/" + kode;
+    }
+    else{
+        window.location.href = "/preview-excel/" + kode;
+    }
+}
+</script>
+
         // 🍎 IOS → DOWNLOAD
         window.location.href = "/open-excel/" + kode
     }
@@ -77,4 +121,12 @@ function bukaExcel(kode){
 
 </body>
 </html>
+
+
+
+</script>
+
+</body>
+</html>
+
 
