@@ -287,38 +287,6 @@ def detail(kode):
         pdf=os.path.basename(pdf_path)
     )
 
-
-@app.route("/open-excel/<kode>")
-def open_excel(kode):
-    global df_global, kolom_kode
-
-    if df_global is None:
-        return "Data belum diupload", 400
-
-    data = df_global[df_global[kolom_kode].astype(str) == kode]
-    if data.empty:
-        return "Data tidak ditemukan", 404
-
-    excel_path = os.path.join(OUTPUT_FOLDER, f"{kode}.xlsx")
-
-    # 🔥 BUAT FILE JIKA BELUM ADA
-    if not os.path.exists(excel_path):
-        with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
-            data.to_excel(writer, index=False)
-            ws = writer.sheets["Sheet1"]
-
-            for col_idx, col in enumerate(data.columns, 1):
-                max_len = len(str(col))
-                for row_idx, val in enumerate(data[col], 2):
-                    cell = ws.cell(row=row_idx, column=col_idx)
-                    if isinstance(val, (int, float)):
-                        cell.number_format = '#,##0'
-                    max_len = max(max_len, len(str(val)))
-                ws.column_dimensions[get_column_letter(col_idx)].width = max_len + 4
-
-    # ⬅️ SETELAH PASTI ADA, BARU BUKA
-    return send_file(excel_path)
-
 # ===============================
 # PREVIEW EXCEL (ONLINE)
 # ===============================
@@ -390,4 +358,3 @@ def download(filename):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
-
