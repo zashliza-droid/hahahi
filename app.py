@@ -287,19 +287,19 @@ def detail(kode):
         pdf=os.path.basename(pdf_path)
     )
 
-
-# PREVIEW EXCEL (LANGSUNG DIBUKA BROWSER)
+# ===============================
+# PREVIEW EXCEL (ONLINE)
 # ===============================
 @app.route("/preview-excel/<kode>")
 def preview_excel(kode):
     global df_global, kolom_kode
 
     if df_global is None:
-        return "Data belum diupload. Silakan upload file kembali."
+        return "Data belum diupload"
 
     data = df_global[df_global[kolom_kode].astype(str) == kode]
     if data.empty:
-        return f"Data untuk kode '{kode}' tidak ditemukan."
+        return "Data tidak ditemukan"
 
     # ===============================
     # PASTIKAN FILE EXCEL ADA
@@ -307,10 +307,9 @@ def preview_excel(kode):
     excel_path = os.path.join(OUTPUT_FOLDER, f"{kode}.xlsx")
 
     if not os.path.exists(excel_path):
-        # Buat file Excel jika belum ada
         with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
-            data.to_excel(writer, index=False, sheet_name='Data')
-            ws = writer.sheets['Data']
+            data.to_excel(writer, index=False)
+            ws = writer.sheets["Sheet1"]
 
             for col_idx, col in enumerate(data.columns, 1):
                 max_len = len(str(col))
@@ -321,9 +320,15 @@ def preview_excel(kode):
                     max_len = max(max_len, len(str(val)))
                 ws.column_dimensions[get_column_letter(col_idx)].width = max_len + 4
 
-    # Tampilkan halaman preview yang akan memicu download/buka file
+    # ===============================
+    # GOOGLE VIEWER
+    # ===============================
+    excel_url = request.host_url.rstrip("/") + "/files/" + kode + ".xlsx"
+    google_viewer = f"https://docs.google.com/gview?url={excel_url}&embedded=true"
+
     return render_template(
         "preview_excel.html",
+        excel_url=google_viewer,
         kode=kode
     )
 
@@ -353,4 +358,3 @@ def download(filename):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
-
