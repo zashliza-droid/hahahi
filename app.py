@@ -9,7 +9,6 @@ from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 
 from openpyxl.utils import get_column_letter
-from openpyxl.styles import numbers
 
 app = Flask(__name__)
 
@@ -48,17 +47,25 @@ def format_datetime(val):
     return val
 
 # ===============================
+# RECOVERY DATA (ANTI ERROR USER LAIN)
+# ===============================
+def ensure_data_loaded():
+    global df_global, kolom_kode
+
+    if df_global is None:
+        data_path = os.path.join(UPLOAD_FOLDER, "data.pkl")
+        kolom_path = os.path.join(UPLOAD_FOLDER, "kolom.txt")
+
+        if os.path.exists(data_path) and os.path.exists(kolom_path):
+            df_global = pd.read_pickle(data_path)
+            with open(kolom_path) as f:
+                kolom_kode = f.read().strip()
+
+# ===============================
 # INDEX
 # ===============================
 @app.route("/")
 def index():
-        # ===============================
-    # TAMBAHAN: SIMPAN UNTUK PUBLIK
-    # ===============================
-    df.to_pickle(os.path.join(UPLOAD_FOLDER, "data.pkl"))
-    with open(os.path.join(UPLOAD_FOLDER, "kolom.txt"), "w") as f:
-        f.write(kolom_kode)
-
     return render_template(
         "index.html",
         projects=[],
@@ -112,6 +119,11 @@ def upload():
     if kolom_kode is None:
         return "Kolom Kode Kegiatan tidak ditemukan"
 
+    # 🔐 SIMPAN KE DISK (ANTI RAM RESET)
+    df.to_pickle(os.path.join(UPLOAD_FOLDER, "data.pkl"))
+    with open(os.path.join(UPLOAD_FOLDER, "kolom.txt"), "w") as f:
+        f.write(kolom_kode)
+
     kode_list = (
         df[kolom_kode]
         .dropna()
@@ -149,13 +161,10 @@ def buat_word(data, kode):
     return path
 
 # ===============================
-# PDF (AUTO FIT)
+# PDF
 # ===============================
-def buat_pdf(data, kode, kolom_fleksibel=None):
+def buat_pdf(data, kode):
     path = os.path.join(OUTPUT_FOLDER, f"{kode}.pdf")
-
-    if kolom_fleksibel is None:
-        kolom_fleksibel = []
 
     doc = SimpleDocTemplate(
         path,
@@ -171,108 +180,29 @@ def buat_pdf(data, kode, kolom_fleksibel=None):
     style.fontSize = 7
     style.leading = 9
 
-    # ===============================
-    # LEBAR HALAMAN YANG REAL
-    # ===============================
-    page_width, _ = landscape(A4)
-    usable_width = page_width - doc.leftMargin - doc.rightMargin
-
-    col_widths = []
-    fixed_total = 0
-
-    # ===============================
-    # HITUNG KOLOM
-    # ===============================
-    for col in data.columns:
-        if col in kolom_fleksibel:
-            col_widths.append(None)
-        else:
-            max_len = max(
-                data[col].astype(str).map(len).max(),
-                len(str(col))
-            )
-            w = min(max(max_len * 5, 45), 85)
-            col_widths.append(w)
-            fixed_total += w
-
-    fleksibel_count = col_widths.count(None)
-
-    # ===============================
-    # SISA LEBAR
-    # ===============================
-    sisa = usable_width - fixed_total
-
-    if fleksibel_count > 0:
-        per_fleksibel = sisa / fleksibel_count
-    else:
-        per_fleksibel = sisa
-
-    col_widths = [
-        per_fleksibel if w is None else w
-        for w in col_widths
-    ]
-
-    # ===============================
-    # 🔴 PAKSA TOTAL WIDTH = PAGE WIDTH
-    # ===============================
-    total_col_width = sum(col_widths)
-    scale = usable_width / total_col_width
-    col_widths = [w * scale for w in col_widths]
-
-    # ===============================
-    # DATA TABLE
-    # ===============================
     table_data = [[Paragraph(str(c), style) for c in data.columns]]
-
     for _, row in data.iterrows():
         table_data.append(
             [Paragraph(format_nominal(v), style) for v in row]
         )
 
-    table = Table(
-        table_data,
-        colWidths=col_widths,
-        repeatRows=1,
-        hAlign="LEFT"   # 🔥 INI KUNCI
-    )
-
+    table = Table(table_data, repeatRows=1)
     table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.black),
         ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
-        ('VALIGN', (0,0), (-1,-1), 'TOP'),
-        ('ALIGN', (0,0), (-1,0), 'CENTER'),
     ]))
 
-    title = Paragraph(
-        f"<b>Data Kode Kegiatan: {kode}</b>",
-        styles["Heading3"]
-    )
-
+    title = Paragraph(f"<b>Data Kode Kegiatan: {kode}</b>", styles["Heading3"])
     doc.build([title, table])
+
     return path
 
 # ===============================
 # DETAIL
 # ===============================
-# ===============================
-# RECOVERY DATA JIKA RAM KOSONG
-# ===============================
-def ensure_data_loaded():
-    global df_global, kolom_kode
-
-    if df_global is None:
-        data_path = os.path.join(UPLOAD_FOLDER, "data.pkl")
-        kolom_path = os.path.join(UPLOAD_FOLDER, "kolom.txt")
-
-        if os.path.exists(data_path) and os.path.exists(kolom_path):
-            df_global = pd.read_pickle(data_path)
-            with open(kolom_path) as f:
-                kolom_kode = f.read().strip()
-
-
 @app.route("/detail/<kode>")
 def detail(kode):
-    ensure_data_loaded() 
+    ensure_data_loaded()
     global df_global, kolom_kode
 
     if df_global is None:
@@ -282,7 +212,6 @@ def detail(kode):
     if data.empty:
         return "Data tidak ditemukan"
 
-    # ===== EXCEL =====
     excel_path = os.path.join(OUTPUT_FOLDER, f"{kode}.xlsx")
     with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
         data.to_excel(writer, index=False)
@@ -290,13 +219,8 @@ def detail(kode):
 
         for col_idx, col in enumerate(data.columns, 1):
             max_len = len(str(col))
-
-            for row_idx, val in enumerate(data[col], 2):
-                cell = ws.cell(row=row_idx, column=col_idx)
-                if isinstance(val, (int, float)):
-                    cell.number_format = '#,##0'
+            for val in data[col]:
                 max_len = max(max_len, len(str(val)))
-
             ws.column_dimensions[get_column_letter(col_idx)].width = max_len + 4
 
     word_path = buat_word(data, kode)
@@ -312,62 +236,6 @@ def detail(kode):
     )
 
 # ===============================
-# PREVIEW EXCEL (ONLINE)
-# ===============================
-# @app.route("/preview-excel/<kode>")
-# def preview_excel(kode):
-#     global df_global, kolom_kode
-
-#     if df_global is None:
-#         return "Data belum diupload"
-
-#     data = df_global[df_global[kolom_kode].astype(str) == kode]
-#     if data.empty:
-#         return "Data tidak ditemukan"
-
-#     # ===============================
-#     # DETEKSI LOCAL / DEPLOY
-#     # ===============================
-#     is_local = request.host.startswith("127.0.0.1") or request.host.startswith("localhost")
-
-#     excel_path = os.path.join(OUTPUT_FOLDER, f"{kode}.xlsx")
-
-#     # pastikan file excel ada
-#     if not os.path.exists(excel_path):
-#         with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
-#             data.to_excel(writer, index=False)
-
-#     # ===============================
-#     # LOCAL → HTML SPREADSHEET
-#     # ===============================
-#     if is_local:
-#         table_html = data.apply(
-#             lambda c: c.map(format_nominal)
-#         ).to_html(
-#             index=False,
-#             classes="excel-table"
-#         )
-
-#         return render_template(
-#             "preview_excel.html",
-#             table=table_html,
-#             kode=kode,
-#             mode="html"
-#         )
-
-#     # ===============================
-#     # DEPLOY → GOOGLE VIEWER
-#     # ===============================
-#     excel_url = request.host_url.rstrip("/") + "/files/" + kode + ".xlsx"
-#     google_viewer = f"https://docs.google.com/gview?url={excel_url}&embedded=true"
-
-#     return render_template(
-#         "preview_excel.html",
-#         excel_url=google_viewer,
-#         kode=kode,
-#         mode="google"
-#     )
-# ===============================
 # FILE PUBLIC
 # ===============================
 @app.route("/files/<filename>")
@@ -377,37 +245,28 @@ def files(filename):
         return send_file(path)
     return "File tidak ditemukan"
 
-# OPEN EXCEL NYAA
+# ===============================
+# OPEN EXCEL
+# ===============================
 @app.route("/open-excel/<kode>")
 def open_excel(kode):
-    ensure_data_loaded() 
+    ensure_data_loaded()
+    global df_global, kolom_kode
 
-    data_path = os.path.join(UPLOAD_FOLDER, "data.pkl")
-    kolom_path = os.path.join(UPLOAD_FOLDER, "kolom.txt")
-
-    if not os.path.exists(data_path):
+    if df_global is None:
         return "Data belum diupload", 400
 
-    df = pd.read_pickle(data_path)
-
-    with open(kolom_path) as f:
-        kolom_kode = f.read().strip()
-
-    data = df[df[kolom_kode].astype(str) == kode]
+    data = df_global[df_global[kolom_kode].astype(str) == kode]
     if data.empty:
         return "Data tidak ditemukan", 404
 
     excel_path = os.path.join(OUTPUT_FOLDER, f"{kode}.xlsx")
-
     if not os.path.exists(excel_path):
-        with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
-            data.to_excel(writer, index=False)
+        data.to_excel(excel_path, index=False)
 
     return send_file(excel_path)
 
-
 # ===============================
-
 # DOWNLOAD
 # ===============================
 @app.route("/download/<filename>")
