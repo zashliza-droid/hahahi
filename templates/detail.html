@@ -4,6 +4,25 @@
     <meta charset="UTF-8">
     <title>Detail {{ kode }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            background: white;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            font-size: 14px;
+        }
+        th {
+            background: #eaeaea;
+        }
+        .table-container {
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+    </style>
 </head>
 <body>
 
@@ -11,47 +30,16 @@
     <h1>📄 Detail Kode {{ kode }}</h1>
 
     <div class="actions">
-
-        <!-- ANDROID EXCEL APP -->
-        <a href="intent://{{ request.host }}/open-excel/{{ kode }}#Intent;
-            scheme=https;
-            package=com.microsoft.office.excel;
-            end;">
-            📱 Buka di Excel App
-        </a>
-
-        <!-- BROWSER -->
-        <a href="/open-excel/{{ kode }}" target="_blank">
-            🖥️ Buka Excel (Browser)
-        </a>
-
-        <!-- DOWNLOAD -->
-        <a href="/download/excel/{{ kode }}">⬇️ Download Excel</a>
-        <a href="/download/word/{{ kode }}">⬇️ Download Word</a>
-        <a href="/download/pdf/{{ kode }}">⬇️ Download PDF</a>
-
+        <a href="/open-excel/{{ kode }}">🖥️ Buka Excel (Browser)</a>
+        <a href="/download/{{ excel }}">⬇️ Download Excel</a>
+        <a href="/download/{{ word }}">⬇️ Download Word</a>
+        <a href="/download/{{ pdf }}">⬇️ Download PDF</a>
         <a href="/">⬅️ Kembali</a>
     </div>
 
+    <!-- 🔥 INI WAJIB ADA -->
     <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    {% for k in kolom %}
-                        <th>{{ k }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in tabel %}
-                    <tr>
-                        {% for k in kolom %}
-                            <td>{{ row[k] }}</td>
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        {{ table | safe }}
     </div>
 </div>
 
