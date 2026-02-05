@@ -23,7 +23,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 # ===============================
-# SESSION DATA (AMAN PUBLIK)
+# SESSION CACHE (AMAN PUBLIK)
 # ===============================
 DATA_CACHE = {}
 
@@ -50,7 +50,11 @@ def format_datetime(val):
 # ===============================
 @app.route("/")
 def index():
-    return render_template("index.html", projects=[], message="Upload file Excel")
+    return render_template(
+        "index.html",
+        projects=[],
+        message="Silakan upload file Excel"
+    )
 
 # ===============================
 # UPLOAD
@@ -62,11 +66,11 @@ def upload():
         return "File tidak ditemukan", 400
 
     session_id = str(uuid.uuid4())
-    path = os.path.join(UPLOAD_FOLDER, f"{session_id}_{file.filename}")
-    file.save(path)
+    save_path = os.path.join(UPLOAD_FOLDER, f"{session_id}_{file.filename}")
+    file.save(save_path)
 
-    df_raw = pd.read_excel(path, header=None)
-
+    # Cari header otomatis
+    df_raw = pd.read_excel(save_path, header=None)
     header_row = next(
         (i for i, r in df_raw.iterrows() if r.notna().sum() >= 2),
         None
@@ -74,19 +78,20 @@ def upload():
     if header_row is None:
         return "Header tidak ditemukan", 400
 
-    df = pd.read_excel(path, header=header_row)
+    df = pd.read_excel(save_path, header=header_row)
 
-    # ✅ FIX: syntax error (kurung kurang)
+    # Bersihkan data
     df = df.replace(r'^\s*$', pd.NA, regex=True)
-
     df = df.dropna(axis=1, how="all")
     df = df.loc[:, ~df.columns.str.contains("^Unnamed", na=False)]
     df = df.reset_index(drop=True)
 
+    # Format tanggal
     for col in df.columns:
         if pd.api.types.is_datetime64_any_dtype(df[col]):
             df[col] = df[col].apply(format_datetime)
 
+    # Cari kolom kode kegiatan
     kolom_kode = next(
         (c for c in df.columns
          if "kode kegiatan" in str(c).lower()
@@ -94,19 +99,17 @@ def upload():
         None
     )
     if not kolom_kode:
-        return "Kolom kode kegiatan tidak ditemukan", 400
-
-    # ✅ FIX: paksa kode kegiatan jadi string stabil
-    df[kolom_kode] = df[kolom_kode].astype(str).str.strip()
+        return "Kolom Kode Kegiatan tidak ditemukan", 400
 
     DATA_CACHE[session_id] = {
         "df": df,
         "kode_col": kolom_kode
     }
 
-    kode_list = sorted(
+    kode_list = (
         df[kolom_kode]
         .dropna()
+        .astype(str)
         .unique()
         .tolist()
     )
@@ -115,7 +118,7 @@ def upload():
         "index.html",
         projects=kode_list,
         session_id=session_id,
-        message=""   # ✅ FIX: hindari tampil "None"
+        message=None
     )
 
 # ===============================
@@ -187,7 +190,7 @@ def detail(session_id, kode):
     df = data_pack["df"]
     kolom_kode = data_pack["kode_col"]
 
-    data = df[df[kolom_kode] == str(kode)]
+    data = df[df[kolom_kode].astype(str) == kode]
     if data.empty:
         return "Data tidak ditemukan", 404
 
@@ -195,13 +198,16 @@ def detail(session_id, kode):
     word_name = f"{session_id}_{kode}.docx"
     pdf_name = f"{session_id}_{kode}.pdf"
 
+    # Excel
     excel_path = os.path.join(OUTPUT_FOLDER, excel_name)
     with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
         data.to_excel(writer, index=False)
         ws = writer.sheets["Sheet1"]
         for i, col in enumerate(data.columns, 1):
-            ws.column_dimensions[get_column_letter(i)].width = max(len(str(col)), 12)
+            max_len = max(len(str(col)), 12)
+            ws.column_dimensions[get_column_letter(i)].width = max_len + 2
 
+    # Word & PDF
     buat_word(data, word_name)
     buat_pdf(data, pdf_name)
 
@@ -216,23 +222,19 @@ def detail(session_id, kode):
     )
 
 # ===============================
-# PREVIEW EXCEL
+# OPEN EXCEL (TANPA DOWNLOAD)
 # ===============================
-@app.route("/preview-excel/<filename>")
-def preview_excel(filename):
-    file_url = request.host_url + "files/" + filename
-    viewer = "https://view.officeapps.live.com/op/embed.aspx?src=" + file_url
-    return render_template("preview_excel.html", excel_url=viewer)
-
-# ===============================
-# FILE PUBLIC
-# ===============================
-@app.route("/files/<filename>")
-def files(filename):
+@app.route("/open-excel/<filename>")
+def open_excel(filename):
     path = os.path.join(OUTPUT_FOLDER, filename)
     if not os.path.exists(path):
         abort(404)
-    return send_file(path)
+
+    return send_file(
+        path,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=False
+    )
 
 # ===============================
 # DOWNLOAD
