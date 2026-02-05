@@ -62,10 +62,11 @@ def upload():
         return "File tidak ditemukan", 400
 
     session_id = str(uuid.uuid4())
-    path = os.path.join(UPLOAD_FOLDER, session_id + "_" + file.filename)
+    path = os.path.join(UPLOAD_FOLDER, f"{session_id}_{file.filename}")
     file.save(path)
 
     df_raw = pd.read_excel(path, header=None)
+
     header_row = next(
         (i for i, r in df_raw.iterrows() if r.notna().sum() >= 2),
         None
@@ -74,6 +75,10 @@ def upload():
         return "Header tidak ditemukan", 400
 
     df = pd.read_excel(path, header=header_row)
+
+    # ✅ FIX: syntax error (kurung kurang)
+    df = df.replace(r'^\s*$', pd.NA, regex=True)
+
     df = df.dropna(axis=1, how="all")
     df = df.loc[:, ~df.columns.str.contains("^Unnamed", na=False)]
     df = df.reset_index(drop=True)
@@ -83,21 +88,25 @@ def upload():
             df[col] = df[col].apply(format_datetime)
 
     kolom_kode = next(
-        (c for c in df.columns if "kode" in c.lower()),
+        (c for c in df.columns
+         if "kode kegiatan" in str(c).lower()
+         or "kode keg" in str(c).lower()),
         None
     )
     if not kolom_kode:
-        return "Kolom kode tidak ditemukan", 400
+        return "Kolom kode kegiatan tidak ditemukan", 400
+
+    # ✅ FIX: paksa kode kegiatan jadi string stabil
+    df[kolom_kode] = df[kolom_kode].astype(str).str.strip()
 
     DATA_CACHE[session_id] = {
         "df": df,
         "kode_col": kolom_kode
     }
 
-    kode_list = (
+    kode_list = sorted(
         df[kolom_kode]
         .dropna()
-        .astype(str)
         .unique()
         .tolist()
     )
@@ -106,7 +115,7 @@ def upload():
         "index.html",
         projects=kode_list,
         session_id=session_id,
-        message=None
+        message=""   # ✅ FIX: hindari tampil "None"
     )
 
 # ===============================
@@ -150,8 +159,8 @@ def buat_pdf(data, filename):
 
     table = Table(table_data, repeatRows=1)
     table.setStyle(TableStyle([
-        ("GRID", (0,0), (-1,-1), 0.5, colors.black),
-        ("BACKGROUND", (0,0), (-1,0), colors.lightgrey),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
+        ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
     ]))
 
     doc = SimpleDocTemplate(
@@ -178,7 +187,7 @@ def detail(session_id, kode):
     df = data_pack["df"]
     kolom_kode = data_pack["kode_col"]
 
-    data = df[df[kolom_kode].astype(str) == kode]
+    data = df[df[kolom_kode] == str(kode)]
     if data.empty:
         return "Data tidak ditemukan", 404
 
