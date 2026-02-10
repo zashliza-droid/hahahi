@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, send_file, abort
+from flask import redirect
 import pandas as pd
 import os
 import uuid
@@ -236,6 +237,18 @@ def open_excel(filename):
         as_attachment=False
     )
 
+@app.route("/open-excel-sheets/<session_id>/<kode>")
+def open_excel_sheets(session_id, kode):
+    excel_name = f"{session_id}_{kode}.xlsx"
+    file_url = request.host_url.rstrip("/") + "/open-excel/" + excel_name
+
+    google_url = (
+        "https://docs.google.com/gview?url="
+        + file_url
+        + "&embedded=true"
+    )
+
+    return redirect(google_url)
 # ===============================
 # DOWNLOAD
 # ===============================
@@ -252,3 +265,4 @@ def download(filename):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
+
