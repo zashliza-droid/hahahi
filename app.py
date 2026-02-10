@@ -237,18 +237,25 @@ def open_excel(filename):
         as_attachment=False
     )
 
-@app.route("/open-excel-online/<session_id>/<kode>")
-def open_excel_online(session_id, kode):
-    excel_name = f"{session_id}_{kode}.xlsx"
-    file_url = request.url_root.replace("http://", "https://").rstrip("/") + "/open-excel/" + excel_name
+@app.route("/preview-excel/<filename>")
+def preview_excel(filename):
+    path = os.path.join(OUTPUT_FOLDER, filename)
+    if not os.path.exists(path):
+        abort(404)
 
-    # Link Excel Online yang buka file via MS
-    online_url = (
-        "https://excel.officeapps.live.com/x/_layouts/xlviewerinternal.aspx?"
-        + "WOPISrc=" + file_url
+    df = pd.read_excel(path)
+
+    table = df.apply(lambda c: c.map(format_nominal)).to_html(
+        index=False,
+        classes="excel-table"
     )
 
-    return redirect(online_url)
+    return render_template(
+        "preview.html",
+        table=table,
+        filename=filename
+    )
+    
 # ===============================
 # DOWNLOAD
 # ===============================
@@ -265,6 +272,7 @@ def download(filename):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
+
 
 
 
