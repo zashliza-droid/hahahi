@@ -185,6 +185,17 @@ def preview_excel(filename):
 
     return render_template("preview.html", table=table)
 
+
+@app.route("/excel-online/<filename>")
+def excel_online(filename):
+    file_url = request.host_url.rstrip("/") + "/open-excel/" + filename
+
+    excel_url = (
+        "https://excel.officeapps.live.com/x/_layouts/xlviewerinternal.aspx?"
+        "WOPISrc=" + file_url
+    )
+
+    return redirect(excel_url)
 # ===============================
 # OPEN & DOWNLOAD
 # ===============================
@@ -201,3 +212,4 @@ def download(filename):
 # ===============================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+
