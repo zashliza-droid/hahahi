@@ -31,8 +31,8 @@
 
    <div class="actions">
    
-    <a href="{{ url_for('open_excel_sheets', session_id=session_id, kode=kode) }}"target="_blank"> 💻 Buka di Google Sheets (Chrome)</a>
-    <a href="/open-excel/{{ excel }}" target="_blank"> 🖥️ Buka di Excel</a>
+    <a href="{{ url_for('open_excel_online', session_id=session_id, kode=kode) }}" target="_blank"> 💻 Buka di Excel Online (Chrome)</a>
+    <a href="/open-excel/{{ excel }}" target="_blank"> 🖥️ Buka di Excel (Browser)/a>
     <a href="/download/{{ excel }}">⬇️ Download Excel</a>
     <a href="/download/{{ word }}">⬇️ Download Word</a>
     <a href="/download/{{ pdf }}">⬇️ Download PDF</a>
@@ -47,6 +47,7 @@
 
 </body>
 </html>
+
 
 
 
