@@ -3,45 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <title>Detail {{ kode }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            background: white;
-        }
-        th, td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            font-size: 14px;
-        }
-        th {
-            background: #eaeaea;
-        }
-        .table-container {
-            margin-top: 20px;
-            overflow-x: auto;
-        }
-    </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>📄 Detail Kode {{ kode }}</h1>
+<h2>Detail Kode {{ kode }}</h2>
 
-    <div class="actions">
-        <a href="{{ url_for('preview_excel', session_id=session_id, kode=kode) }}" target="_blank"> 💻 Preview Excel (Chrome)</a>
-        <a href="/open-excel/{{ excel }}" target="_blank">🖥️ Buka di Excel (Browser)</a>
-        <a href="/download/{{ excel }}">⬇️ Download Excel</a>
-        <a href="/download/{{ word }}">⬇️ Download Word</a>
-        <a href="/download/{{ pdf }}">⬇️ Download PDF</a>
-        <a href="/">⬅️ Kembali</a>
-    </div>
+<a href="/preview-excel/{{ excel }}" target="_blank">💻 Preview Excel</a> |
+<a href="/open-excel/{{ excel }}" target="_blank">🖥️ Open Excel</a> |
+<a href="/download/{{ excel }}">⬇️ Excel</a> |
+<a href="/download/{{ word }}">⬇️ Word</a> |
+<a href="/download/{{ pdf }}">⬇️ PDF</a> |
+<a href="/">⬅️ Kembali</a>
 
-    <div class="table-container">
-        {{ table | safe }}
-    </div>
-</div>
+<hr>
+
+{{ table|safe }}
 
 </body>
 </html>
