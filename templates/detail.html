@@ -29,17 +29,15 @@
 <div class="container">
     <h1>📄 Detail Kode {{ kode }}</h1>
 
-   <div class="actions">
-   
-    <a href="/preview-excel/{{ excel }}" target="_blank"> 💻 Preview Excel (Chrome)</a>
-    <a href="/open-excel/{{ excel }}" target="_blank"> 🖥️ Buka di Excel (Browser)</a>
-    <a href="/download/{{ excel }}">⬇️ Download Excel</a>
-    <a href="/download/{{ word }}">⬇️ Download Word</a>
-    <a href="/download/{{ pdf }}">⬇️ Download PDF</a>
-    <a href="/">⬅️ Kembali</a>
+    <div class="actions">
+        <a href="{{ url_for('preview_excel', session_id=session_id, kode=kode) }}" target="_blank"> 💻 Preview Excel (Chrome)</a>
+        <a href="/open-excel/{{ excel }}" target="_blank">🖥️ Buka di Excel (Browser)</a>
+        <a href="/download/{{ excel }}">⬇️ Download Excel</a>
+        <a href="/download/{{ word }}">⬇️ Download Word</a>
+        <a href="/download/{{ pdf }}">⬇️ Download PDF</a>
+        <a href="/">⬅️ Kembali</a>
     </div>
 
-    <!-- 🔥 INI WAJIB ADA -->
     <div class="table-container">
         {{ table | safe }}
     </div>
@@ -47,10 +45,3 @@
 
 </body>
 </html>
-
-
-
-
-
-
-
