@@ -237,21 +237,18 @@ def open_excel(filename):
         as_attachment=False
     )
 
-@app.route("/open-excel-sheets/<session_id>/<kode>")
-def open_excel_sheets(session_id, kode):
+@app.route("/open-excel-online/<session_id>/<kode>")
+def open_excel_online(session_id, kode):
     excel_name = f"{session_id}_{kode}.xlsx"
+    file_url = request.url_root.replace("http://", "https://").rstrip("/") + "/open-excel/" + excel_name
 
-    base_url = request.url_root.replace("http://", "https://").rstrip("/")
-    file_url = f"{base_url}/open-excel/{excel_name}"
-
-    google_url = (
-        "https://docs.google.com/gview?url="
-        + file_url
-        + "&embedded=true"
+    # Link Excel Online yang buka file via MS
+    online_url = (
+        "https://excel.officeapps.live.com/x/_layouts/xlviewerinternal.aspx?"
+        + "WOPISrc=" + file_url
     )
 
-    return redirect(google_url)
-    
+    return redirect(online_url)
 # ===============================
 # DOWNLOAD
 # ===============================
@@ -268,5 +265,6 @@ def download(filename):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
+
 
 
