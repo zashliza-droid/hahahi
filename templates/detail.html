@@ -9,8 +9,8 @@
 <h2>Detail Kode {{ kode }}</h2>
 
 <a href="/preview-excel/{{ excel }}" target="_blank">💻 Preview Excel</a> |
-<a href="/excel-online/{{ excel }}" target="_blank">
-    ✏️ Edit di Excel Online
+<a href="/preview-excel/{{ session_id }}/{{ excel }}" target="_blank">
+    ✏️ Preview & Edit
 </a>
 <a href="/open-excel/{{ excel }}" target="_blank">🖥️ Open Excel</a> |
 <a href="/download/{{ excel }}">⬇️ Excel</a> |
@@ -24,4 +24,5 @@
 
 </body>
 </html>
+
 
