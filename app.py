@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file, abort
+ from flask import Flask, render_template, request, send_file, abort
 from flask import redirect
 import pandas as pd
 import os
@@ -222,20 +222,6 @@ def detail(session_id, kode):
         pdf=pdf_name
     )
 
-# ===============================
-# OPEN EXCEL (TANPA DOWNLOAD)
-# ===============================
-@app.route("/open-excel/<filename>")
-def open_excel(filename):
-    path = os.path.join(OUTPUT_FOLDER, filename)
-    if not os.path.exists(path):
-        abort(404)
-
-    return send_file(
-        path,
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        as_attachment=False
-    )
 
 # ===============================
 # EXCEL ONLINE (AUTO BUKA MICROSOFT)
@@ -257,25 +243,6 @@ def excel_online(filename):
 
     return redirect(office_url)
 
-@app.route("/preview-excel/<filename>")
-def preview_excel(filename):
-    path = os.path.join(OUTPUT_FOLDER, filename)
-    if not os.path.exists(path):
-        abort(404)
-
-    df = pd.read_excel(path)
-
-    table = df.apply(lambda c: c.map(format_nominal)).to_html(
-        index=False,
-        classes="excel-table"
-    )
-
-    return render_template(
-        "preview.html",
-        table=table,
-        filename=filename
-    )
-    
 # ===============================
 # DOWNLOAD
 # ===============================
@@ -292,4 +259,5 @@ def download(filename):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
+
 
