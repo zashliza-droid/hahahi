@@ -174,9 +174,10 @@ def detail(session_id, kode):
 # ===============================
 # PREVIEW EXCEL (CHROME)
 # ===============================
-@app.route("/preview-excel/<session_id>/<filename>")
-def preview_excel_edit(session_id, filename):
+@app.route("/preview-excel/<filename>")
+def preview_excel_edit(filename):
     path = os.path.join(OUTPUT_FOLDER, filename)
+
     if not os.path.exists(path):
         abort(404)
 
@@ -184,12 +185,10 @@ def preview_excel_edit(session_id, filename):
 
     return render_template(
         "preview_edit.html",
-        session_id=session_id,
         filename=filename,
         columns=df.columns.tolist(),
         data=df.fillna("").values.tolist()
     )
-
 
 @app.route("/excel-online/<filename>")
 def excel_online(filename):
@@ -207,9 +206,10 @@ def view_excel(filename):
     file_url = request.host_url.rstrip("/") + "/open-excel/" + filename
     return redirect("https://docs.google.com/gview?url=" + file_url)
 
-@app.route("/save-excel/<session_id>/<filename>", methods=["POST"])
-def save_excel(session_id, filename):
+@app.route("/save-excel/<filename>", methods=["POST"])
+def save_excel(filename):
     path = os.path.join(OUTPUT_FOLDER, filename)
+
     if not os.path.exists(path):
         abort(404)
 
@@ -237,6 +237,7 @@ def download(filename):
 # ===============================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+
 
 
 
