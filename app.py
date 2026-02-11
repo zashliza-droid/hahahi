@@ -237,6 +237,26 @@ def open_excel(filename):
         as_attachment=False
     )
 
+# ===============================
+# EXCEL ONLINE (AUTO BUKA MICROSOFT)
+# ===============================
+@app.route("/excel-online/<filename>")
+def excel_online(filename):
+    path = os.path.join(OUTPUT_FOLDER, filename)
+    if not os.path.exists(path):
+        abort(404)
+
+    # URL publik file di Railway
+    file_url = request.url_root.rstrip("/") + "/open-excel/" + filename
+
+    # Redirect ke Microsoft Office Web Viewer
+    office_url = (
+        "https://view.officeapps.live.com/op/view.aspx?src="
+        + file_url
+    )
+
+    return redirect(office_url)
+
 @app.route("/preview-excel/<filename>")
 def preview_excel(filename):
     path = os.path.join(OUTPUT_FOLDER, filename)
@@ -272,3 +292,4 @@ def download(filename):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
+
