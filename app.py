@@ -222,6 +222,18 @@ def detail(session_id, kode):
         pdf=pdf_name
     )
 
+
+@app.route("/open-excel/<filename>") 
+def open_excel(filename): 
+    path = os.path.join(OUTPUT_FOLDER, filename) 
+    if not os.path.exists(path):
+        abort(404)
+        
+        return send_file( 
+            path,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+            as_attachment=False )
+        
 # ===============================
 # EXCEL ONLINE (AUTO BUKA MICROSOFT)
 # ===============================
@@ -258,6 +270,7 @@ def download(filename):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
+
 
 
 
