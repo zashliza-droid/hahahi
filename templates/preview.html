@@ -1,126 +1,14 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Preview Editable Excel</title>
-
-<style>
-body {
-    font-family: Arial;
-    background: #f4f6f8;
-    padding: 20px;
-}
-
-.top-bar {
-    margin-bottom: 15px;
-}
-
-button {
-    padding: 8px 16px;
-    margin-right: 8px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.save { background:#0f4c75; color:white; }
-.download { background:#2ecc71; color:white; }
-.close { background:#e74c3c; color:white; }
-
-table {
-    border-collapse: collapse;
-    width: 100%;
-    background: white;
-}
-
-th, td {
-    border: 1px solid #ccc;
-    padding: 8px;
-    min-width: 120px;
-}
-
-th {
-    background: #eee;
-}
-
-td[contenteditable="true"] {
-    background: #fffbe6;
-}
-</style>
+    <meta charset="UTF-8">
+    <title>Preview Excel</title>
 </head>
-
 <body>
 
-<h2>📝 Preview Excel (Editable)</h2>
+<h3>Preview Excel</h3>
 
-<div class="top-bar">
-    <button class="save" onclick="simpan()">💾 Simpan</button>
-    <button class="download" onclick="downloadExcel()">⬇️ Download Excel</button>
-    <button class="close" onclick="tutup()">❌ Tutup</button>
-</div>
-
-<table id="tabel">
-    <thead>
-        <tr>
-            {% for col in columns %}
-            <th>{{ col }}</th>
-            {% endfor %}
-        </tr>
-    </thead>
-    <tbody>
-        {% for row in data %}
-        <tr>
-            {% for cell in row %}
-            <td contenteditable="true">{{ cell }}</td>
-            {% endfor %}
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-<script>
-
-function ambilData() {
-    const table = document.getElementById("tabel");
-    const rows = [];
-
-    for (let i = 1; i < table.rows.length; i++) {
-        const cells = table.rows[i].cells;
-        const row = [];
-        for (let j = 0; j < cells.length; j++) {
-            row.push(cells[j].innerText);
-        }
-        rows.push(row);
-    }
-    return rows;
-}
-
-function simpan() {
-    fetch("/save-excel/{{ session_id }}/{{ filename }}", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            columns: {{ columns|tojson }},
-            data: ambilData()
-        })
-    })
-    .then(res => res.json())
-    .then(() => alert("✅ Perubahan berhasil disimpan"));
-}
-
-function downloadExcel() {
-    simpan(); // pastikan update dulu
-    setTimeout(() => {
-        window.location.href = "/download/{{ filename }}";
-    }, 500);
-}
-
-function tutup() {
-    window.close();
-}
-
-</script>
+{{ table|safe }}
 
 </body>
 </html>
