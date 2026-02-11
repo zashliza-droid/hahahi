@@ -188,21 +188,16 @@ def preview_excel(filename):
     return render_template("preview.html", table=table)
 
 
-@app.route("/save-excel/<filename>", methods=["POST"])
-def save_excel(filename):
-    path = os.path.join(OUTPUT_FOLDER, filename)
+@app.route("/excel-online/<filename>")
+def excel_online(filename):
+    file_url = request.host_url.rstrip("/") + "/open-excel/" + filename
 
-    if not os.path.exists(path):
-        abort(404)
+    excel_url = (
+        "https://excel.officeapps.live.com/x/_layouts/xlviewerinternal.aspx?"
+        "WOPISrc=" + file_url
+    )
 
-    payload = request.json
-    columns = payload["columns"]
-    rows = payload["data"]
-
-    df = pd.DataFrame(rows, columns=columns)
-    df.to_excel(path, index=False)
-
-    return {"status": "ok"}
+    return redirect(excel_url)
 # ===============================
 # OPEN & DOWNLOAD
 # ===============================
@@ -219,6 +214,7 @@ def download(filename):
 # ===============================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+
 
 
 
