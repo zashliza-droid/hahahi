@@ -198,6 +198,11 @@ def excel_online(filename):
     )
 
     return redirect(excel_url)
+
+@app.route("/view-excel/<filename>")
+def view_excel(filename):
+    file_url = request.host_url.rstrip("/") + "/open-excel/" + filename
+    return redirect("https://docs.google.com/gview?url=" + file_url)
 # ===============================
 # OPEN & DOWNLOAD
 # ===============================
@@ -214,6 +219,7 @@ def download(filename):
 # ===============================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+
 
 
 
