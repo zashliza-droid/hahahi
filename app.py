@@ -174,16 +174,21 @@ def detail(session_id, kode):
 # ===============================
 # PREVIEW EXCEL (CHROME)
 # ===============================
-@app.route("/preview-excel/<filename>")
-def preview_excel(filename):
+@app.route("/preview-excel/<session_id>/<filename>")
+def preview_excel_edit(session_id, filename):
     path = os.path.join(OUTPUT_FOLDER, filename)
     if not os.path.exists(path):
         abort(404)
 
     df = pd.read_excel(path)
-    table = df.apply(lambda c: c.map(format_nominal)).to_html(index=False)
 
-    return render_template("preview.html", table=table)
+    return render_template(
+        "preview_edit.html",
+        session_id=session_id,
+        filename=filename,
+        columns=df.columns.tolist(),
+        data=df.fillna("").values.tolist()
+    )
 
 
 @app.route("/excel-online/<filename>")
@@ -201,6 +206,21 @@ def excel_online(filename):
 def view_excel(filename):
     file_url = request.host_url.rstrip("/") + "/open-excel/" + filename
     return redirect("https://docs.google.com/gview?url=" + file_url)
+
+@app.route("/save-excel/<session_id>/<filename>", methods=["POST"])
+def save_excel(session_id, filename):
+    path = os.path.join(OUTPUT_FOLDER, filename)
+    if not os.path.exists(path):
+        abort(404)
+
+    payload = request.json
+    columns = payload["columns"]
+    rows = payload["data"]
+
+    df = pd.DataFrame(rows, columns=columns)
+    df.to_excel(path, index=False)
+
+    return {"status": "ok"}
 # ===============================
 # OPEN & DOWNLOAD
 # ===============================
@@ -217,5 +237,6 @@ def download(filename):
 # ===============================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+
 
 
