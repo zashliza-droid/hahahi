@@ -174,31 +174,18 @@ def detail(session_id, kode):
 # ===============================
 # PREVIEW EXCEL (CHROME)
 # ===============================
-@app.route("/preview-excel/<filename>")
-def preview_excel_edit(filename):
 
+
+app.route("/preview-excel/<filename>")
+def preview_excel(filename):
     path = os.path.join(OUTPUT_FOLDER, filename)
+    if not os.path.exists(path):
+        abort(404)
 
-    # DEBUG sementara
-    if not os.path.isfile(path):
-        return f"""
-        File tidak ditemukan.<br>
-        Path: {path}<br>
-        Isi folder: {os.listdir(OUTPUT_FOLDER)}
-        """, 404
+    df = pd.read_excel(path)
+    table = df.apply(lambda c: c.map(format_nominal)).to_html(index=False)
 
-    try:
-        df = pd.read_excel(path)
-    except Exception as e:
-        return f"Gagal membaca Excel: {str(e)}", 500
-
-    return render_template(
-        "preview_edit.html",
-        filename=filename,
-        columns=df.columns.tolist(),
-        data=df.fillna("").values.tolist()
-    )
-
+    return render_template("preview.html", table=table)
 
 
 @app.route("/save-excel/<filename>", methods=["POST"])
@@ -232,6 +219,7 @@ def download(filename):
 # ===============================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+
 
 
 
